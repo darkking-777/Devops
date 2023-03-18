@@ -1,0 +1,80 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Flower Classification</title>
+    <style>
+      body {
+        font-family: sans-serif;
+      }
+      form {
+        margin: 50px auto;
+        text-align: center;
+      }
+      h1 {
+        text-align: center;
+      }
+      img {
+        max-width: 300px;
+        display: block;
+        margin: 0 auto;
+      }
+      .results {
+        margin: 50px auto;
+        text-align: center;
+      }
+      .result {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Pomogranate Disease detection
+
+    </h1>
+    <form id="upload-form">
+      <input type="file" id="file-input" accept="image/*">
+      <button type="submit">Classify</button>
+    </form>
+    <div id="image-preview"></div>
+    <div class="results" id="results"></div>
+    <script>
+      const form = document.querySelector('#upload-form');
+      const fileInput = document.querySelector('#file-input');
+      const imagePreview = document.querySelector('#image-preview');
+      const results = document.querySelector('#results');
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        results.innerHTML = 'Loading...';
+        const file = fileInput.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+        fetch('/predict', {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => response.json())
+          .then(data => {
+            results.innerHTML = '';
+            data.forEach(result => {
+              const element = document.createElement('div');
+              element.classList.add('result');
+              element.innerHTML = `${result.class}: ${result.score.toFixed(3)}`;
+              results.appendChild(element);
+            });
+          })
+          .catch(error => {
+            results.innerHTML = 'Error: ' + error;
+          });
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = document.createElement('img');
+          image.src = reader.result;
+          imagePreview.innerHTML = '';
+          imagePreview.appendChild(image);
+        };
+        reader.readAsDataURL(file);
+      });
+    </script>
+  </body>
+</html>
